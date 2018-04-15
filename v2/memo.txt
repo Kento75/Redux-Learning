@@ -1,0 +1,207 @@
+＜フォルダ構成＞
+
+counter
+├── public
+│     └── index.html
+└── src
+     ├── index.js
+     ├── actions
+     │     └── index.js
+     ├── reducers
+     │     └── index.js
+     ├── components
+     │     └── Counter.js
+     └── node_modules
+
+
+①Actions／Action Creators
+・今回ActionsとAction Creatorsはactions/index.jsにまとめている。
+・Actionsの復習
+　１）何をするアクションなのかを表すオブジェクト
+　２）typeプロパティを必ず持つ
+
+・Action Creatorsの復習
+　１）Actionを作成するメソッド
+
+例）// actions/index.js
+    const INCREMENT = { type: 'INCREMENT' }
+    const DECREMENT = { type: 'DECREMENT' }
+
+    export function increment() {
+      return INCREMENT;
+    }
+    export function decrement() {
+      return DECREMENT;
+    }
+
+
+②Reducers
+・今回Reducersはreducers/index.jsにまとめている。
+・Reducersの復習
+　１）ActionとStateから新たなStateを作成して返す
+　２）ポイントはStateを更新するのではなく、 新しく作成したState を返すということ
+
+例）// reducers/index.js
+    export default (state = 0, action) => {
+      // stateの初期値を0に設定
+      switch (action.type) {
+        case 'INCREMENT':
+          return state + 1
+        case 'DECREMENT':
+          return state - 1
+        default:
+          return state
+      }
+    }　
+
+
+③Components
+・今回はReactを利用するので、描画部分を表現するComponentsを作成する必要がある。
+・ComponentsにはPresentational ComponentとContainer Componentの2種類が存在
+　１）Presentational Component
+　　　　画面の描画を担当するComponent
+　２）Container Component
+　　　　Presentational Componentにデータやコールバックを渡すComponent
+
+　※本サンプルではPresentational Componentのみ利用
+　　
+　例）// components/Counter.js
+      import React, { Component, PropTypes } from 'react'
+
+      class Counter extends Component {
+        static propTypes = {
+          value: PropTypes.number.isRequired,
+          onIncrement: PropTypes.func.isRequired,
+          onDecrement: PropTypes.func.isRequired
+        }
+
+        incrementIfOdd = () => {
+          if (this.props.value % 2 !== 0) {
+            // valueが奇数の場合のみonIncrementを実行
+            this.props.onIncrement()
+          }
+        }
+
+        incrementAsync = () => {
+          // 1秒後にonIncrementを実行
+          setTimeout(this.props.onIncrement, 1000)
+        }
+
+        render() {
+          // 描画処理
+          const { value, onIncrement, onDecrement } = this.props
+          return (
+            <p>
+              Clicked: {value} times
+              {' '}
+              <button onClick={onIncrement}>
+                +
+              </button>
+              {' '}
+              <button onClick={onDecrement}>
+                -
+              </button>
+              {' '}
+              <button onClick={this.incrementIfOdd}>
+                Increment if odd
+              </button>
+              {' '}
+              <button onClick={this.incrementAsync}>
+                Increment async
+              </button>
+            </p>
+          )
+        }
+      }
+
+      export default Counter
+
+
+④Store
+・今回Storeはsrc/index.jsにまとめられている
+・Storeの復習
+　１）アプリ内で必ず1つの存在
+　２）アプリの状態を管理する
+　３）Stateを更新するためのdispatchを提供する
+　　　言い換えればdispatch(action)をすることでStoreにStateの変更を知らせられる
+　４）Stateの状態を追えるようにsubscribeを提供する
+　　　言い換えればsubscribe(listener)をすることでlistenerはgetStateを通してStateの状態を取得できる
+
+　例）// src/index.js
+      import React from 'react'
+      import ReactDOM from 'react-dom'
+      import { createStore } from 'redux'
+      import Counter from './components/Counter'
+      import counter from './reducers'
+      import { increment, decrement } from './actions'
+
+      const store = createStore(counter)
+      const rootEl = document.getElementById('root')
+
+      const render = () => ReactDOM.render(
+        <Counter
+          value={store.getState()}
+          onIncrement={() => store.dispatch(increment())}
+          onDecrement={() => store.dispatch(decrement())}
+        />,
+        rootEl
+      )
+
+      render()
+      store.subscribe(render)
+
+　＜ポイント＞
+　　１）冒頭で必要なモジュールを読み込んでいる。
+
+      import React from 'react'
+      import ReactDOM from 'react-dom'
+      import { createStore } from 'redux'
+      import Counter from './components/Counter'        // Component
+      import counter from './reducers'                  // Reducer
+      import { increment, decrement } from './actions'  // Action
+
+    ２）storeを作成
+
+      // カウントアップ・ダウンのReducerを引数にStoreを生成
+      const store = createStore(counter)
+    
+    ３）前回はHTMLに全て構成を書いているが、今回はReactを利用しているので、下記のように描画をしている。
+
+      // id="root"のDOMを取得
+      const rootEl = document.getElementById('root')
+
+      // 描画メソッド
+      const render = () => ReactDOM.render(
+        {/* Counter Componentの呼び出し */}
+        <Counter
+          value={store.getState()}
+          onIncrement={() => store.dispatch(increment)}
+          onDecrement={() => store.dispatch(decrement)}
+        />,
+        rootEl
+      )
+
+      // 初期描画処理
+      render()
+
+    ４）Counter Componentの3つの必須propTypesに下記を渡している。
+　　    ・value: Stateの値(store.getState())
+　　　　・onIncrement: StoreにStateの増加を通知(() => store.dispatch(increment))
+　　　　・onDecrement: StoreにStateの減少を通知(() => store.dispatch(decrement))
+
+　　　　上記のようにすることで、クリックしたタイミングで
+　　　　store.dispatchにAction Creatorsであるincrementおよびdecrementで作成したActionsを渡せるようになる。
+　　　　これにより、『 StoreにStateの変更を知らせる 』ことができまる。
+　　　　その後、render()で描画処理を実行している。
+
+　　５）最後に、listener処理
+
+　　　例）
+　　　　// subscribeの第一引数にrenderメソッドを指定
+　　　　store.subscribe(render)
+
+　　　上記のように、store.subscribeにrenderメソッドを渡すことで、
+　　　dispatch実行してStateの状態が変化したときに、毎回renderメソッドが実行されることになる。
+　　　こうすることで、『 Stateの変更結果として描画に反映させる 』ことができる。
+
+⑤
