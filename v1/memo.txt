@@ -1,0 +1,103 @@
+①Actions
+・何をするアクションなのかを表すオブジェクト
+・typeプロパティを必ず持つ
+
+例）const INCREMENT = { type: 'INCREMENT' }
+　　const DECREMENT = { type: 'DECREMENT' }
+
+
+②Action Creators
+・Actionを作成するメソッド
+
+例）function increment() {
+　　  return INCREMENT
+　　}
+　　function decrement() {
+ 　　 return DECREMENT
+　　}
+
+
+③Reducers
+・ActionとStateから新たなStateを作成して返す
+・ポイントはStateを更新するのではなく、 新しく作成したState を返すということ
+
+例）※ stateはカウント数を表している。
+　　function counter(state, action) {
+ 　　 if (typeof state === 'undefined') {
+    　　// 初期値は0として返却する
+    　　return 0
+  　　}
+
+　　  switch (action.type) {
+    　　case 'INCREMENT':
+      　　return state + 1
+    　　case 'DECREMENT':
+      　　return state - 1
+    　　default:
+      　　return state
+  　　}
+　　}
+
+
+④Store
+・アプリ内で必ず1つの存在
+・アプリの状態を管理する
+・Stateを更新するためのdispatchを提供する
+　・言い換えればdispatch(action)をすることでStoreにStateの変更を知らせられる
+・Stateの状態を追えるようにsubscribeを提供する
+　・言い換えればsubscribe(listener)をすることでlistenerはgetStateを通してStateの状態を取得できる
+
+例）// Storeを作成するためのcreateStoreメソッドの第一引数にReducerを渡す
+　　var store = Redux.createStore(counter)
+
+
+⑤今回はCounter Exampleであるため、
+
+・「+」ボタンを選択したら「+1」された結果が表示される
+・「-」ボタンを選択したら「-1」された結果が表示されるようになっています。
+　よって、「+ / -」ボタンをクリックしたタイミングで
+
+　　・Storeにstateの変更を知らせる
+　　・stateの変更を結果として描画に反映させる必要がある。
+
+これはStore項目の冒頭で書いたdispatchとlistenerを利用することで達成できる。
+
+１）dispatch
+
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+// 「+」ボタンを選択した場合
+document.getElementById('increment')
+  .addEventListener('click', function () {
+    store.dispatch(increment())
+  })
+
+// 「-」ボタンを選択した場合
+document.getElementById('decrement')
+  .addEventListener('click', function () {
+    store.dispatch(decrement())
+  })
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+＜解説＞
+上記のようにクリックしたタイミングでstore.dispatchにAction Creatorsであるincrement()およびdecrement()で作成したActionsを渡している。
+こうすることで、『 Storeにstateの変更を知らせる 』ことができる。
+
+２）listener
+
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+// Click数を示すDOMの取得
+var valueEl = document.getElementById('value')
+// 最新のstateの状態をClick数に反映するメソッド
+function render() {
+  valueEl.innerHTML = store.getState().toString()
+}
+// 初期状態を表示するために実行
+render()
+// subscribeの第一引数にrenderメソッドを指定
+store.subscribe(render)
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+＜解説＞
+上記のように、store.subscribeにrenderメソッドを渡すことで、
+dispatch実行してstateの状態が変化したときに、毎回renderメソッドが実行されることになる。
+こうすることで、『 stateの変更結果として描画に反映させる 』ことができる。
+subscribeはstateの状態を監視する役割を持っていることがわかる。
+
