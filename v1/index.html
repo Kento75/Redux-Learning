@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Redux basic example</title>
+    <title>Redux example v1</title>
     <script src="https://unpkg.com/redux@latest/dist/redux.min.js"></script>
   </head>
   <body>
@@ -15,16 +15,21 @@
       </p>
     </div>
     <script>
+    // Actions start
       const INCREMENT = { type: 'INCREMENT' };
       const DECREMENT = { type: 'DECREMENT' };
+    // Actions end
 
+    // Action Creators start
       function increment() {
         return INCREMENT;
       }
       function decrement() {
         return DECREMENT;
       }
+    // Action Creators end
 
+    // Reducers start
       function counter(state, action) {
         if (typeof state === 'undefined') {
           return 0
@@ -39,8 +44,13 @@
             return state
         }
       }
+    // Reducers end
 
+    // Store start
       var store = Redux.createStore(counter)
+    // Store end
+
+    // listener start
       var valueEl = document.getElementById('value')
 
       function render() {
@@ -49,7 +59,9 @@
 
       render()
       store.subscribe(render)
+    // listener end
 
+    // dispatch start
       document.getElementById('increment')
         .addEventListener('click', function () {
           store.dispatch(increment())
@@ -73,6 +85,7 @@
             store.dispatch(increment())
           }, 1000)
         })
+    // dispatch end
     </script>
   </body>
 </html>
